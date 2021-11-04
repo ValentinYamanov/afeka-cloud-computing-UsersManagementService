@@ -1,5 +1,7 @@
 from flask import Flask, Response, request, make_response, jsonify
 
+from controllers.user_controller import UserController
+
 app = Flask(__name__)
 
 
@@ -7,7 +9,7 @@ app = Flask(__name__)
 def user_management() -> Response:
     try:
         if request.method == 'POST':
-            return jsonify({})
+            return UserController.store_user(request.json)
         if request.method == 'DELETE':
             return jsonify({})
 

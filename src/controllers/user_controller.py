@@ -7,7 +7,7 @@ class UserController:
     def __init__(self):
         self._api_url = os.getenv('API_URL', None)
 
-    def store_user(self, email: str, details: dict) -> dict:
+    def store_user(self, details: dict) -> dict:
         """
         An action that receives data with information is used
 
@@ -20,6 +20,7 @@ class UserController:
         :return: A user record
         """
         # TODO: Implement the method
+
         return {}
 
     def delete_all_users(self) -> None:
