@@ -1,20 +1,22 @@
 from flask import Flask, Response, request, make_response, jsonify
-
 from controllers.user_controller import UserController
 
+
 app = Flask(__name__)
+user_controller = UserController()
 
 
 @app.route("/users", methods=['POST', 'DELETE'])
 def user_management() -> Response:
     try:
         if request.method == 'POST':
-            return UserController.store_user(request.json)
+            x = user_controller.store_user(request.json)
+            return jsonify(x)
         if request.method == 'DELETE':
             return jsonify({})
 
     except Exception as ex:
-        return make_response(jsonify('Error: No routing implemented'), 404)
+        return print(ex)
 
 
 @app.route("/users/<email>", methods=['PUT', 'GET'])
