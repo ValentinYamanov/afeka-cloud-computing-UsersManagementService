@@ -1,7 +1,17 @@
 from datetime import datetime
 
+# re module provides support
+# for regular expressions
+import re
+
 
 class User:
+    _email: str
+    _name: dict
+    _password: str
+    _dob: datetime
+    _roles: list[str]
+
     def __init__(
             self,
             email: str = '',
@@ -10,15 +20,15 @@ class User:
             roles: list[str] = None,
             dob: datetime = datetime.now()
     ):
-        if name:
+        if not name:
             name = {}
-        if roles:
+        if not roles:
             roles = []
-        self._email = email
-        self._name = name
-        self._password = password
-        self._dob = dob
-        self._roles = roles
+        self.email = email
+        self.name = name
+        self.password = password
+        self.birth_day = dob
+        self.roles = roles
 
     @property
     def name(self) -> dict:
@@ -39,7 +49,10 @@ class User:
     @email.setter
     def email(self, email: str):
         # TODO: Check if the email is exists, and valid
-        self._email = email
+        if self.validate_email(email):
+            self._email = email
+        else:
+            raise RuntimeError('Invalid email was provided')
 
     @property
     def password(self) -> str:
@@ -69,3 +82,25 @@ class User:
         # TODO: Make sure that these strings are not empty.
         #  Any value that is not an empty string will be considered valid
         self._roles = roles
+
+    @staticmethod
+    def validate_email(email: str) -> bool:
+        # Make a regular expression
+        # for validating an Email
+        regex = r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b'
+
+        if re.fullmatch(regex, email):
+            return True
+        else:
+            return False
+
+    def user_to_json(self) -> dict:
+        return {
+            "email": self.email,
+            "name": self.name,
+            "password": self.password,
+            "roles": self.roles,
+            "dob": self.birth_day
+        }
+
+

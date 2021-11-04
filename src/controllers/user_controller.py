@@ -2,12 +2,14 @@ from typing import Union
 import requests
 import os
 
+from src.entities.user import User
+
 
 class UserController:
     def __init__(self):
-        self._api_url = os.getenv('API_URL', None)
+        self._api_url = os.getenv('API_URL', 'https://cloud-computing-afeka.herokuapp.com')
 
-    def store_user(self, email: str, details: dict) -> dict:
+    def store_user(self, data: dict) -> dict:
         """
         An action that receives data with information is used
 
@@ -15,12 +17,23 @@ class UserController:
         If there is already a user with the same email address in the system,
         error code 500 will be returned
 
-        :param email: The user's email
-        :param details: The user's details
+        :param data: The user's details
         :return: A user record
         """
         # TODO: Implement the method
-        return {}
+        user_to_store = User(
+            data.get("email", ''),
+            data.get("name", ''),
+            data.get("password", ''),
+            data.get("roles", []),
+            data.get('birth_day', '')
+        )
+        user_from_db = requests.get(url=f'{self._api_url}/keyValue/{data.get("email")}')
+
+        if not user_from_db:
+            return requests.post(url=f'{self._api_url}/keyValue', json=user_to_store.user_to_json()).json()
+        else:
+            raise RuntimeError('User already exists in the system.')
 
     def delete_all_users(self) -> None:
         """
