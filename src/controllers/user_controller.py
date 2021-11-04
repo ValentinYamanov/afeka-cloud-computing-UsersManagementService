@@ -1,9 +1,11 @@
 from typing import Union
+import requests
+import os
 
 
 class UserController:
     def __init__(self):
-        pass
+        self._api_url = os.getenv('API_URL', None)
 
     def store_user(self, email: str, details: dict) -> dict:
         """
@@ -25,7 +27,6 @@ class UserController:
         An action that deletes all user information in the system
         and does not return anything
         """
-        # TODO: Implement the method
         pass
 
     def update_user(self, email: str, details: dict) -> None:
