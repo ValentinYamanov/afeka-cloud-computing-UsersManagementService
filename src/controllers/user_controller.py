@@ -40,7 +40,7 @@ class UserController:
         An action that deletes all user information in the system
         and does not return anything
         """
-        pass
+        requests.delete(url=f'{self._api_url}/keyValue')
 
     def update_user(self, email: str, details: dict) -> None:
         """
@@ -60,7 +60,7 @@ class UserController:
         # TODO: Implement the method
         pass
 
-    def get_user(self, email: str) -> dict:
+    def get_user(self, email: str) -> Union[dict, None]:
         """
         An action that returns user information that stored in the system
 
@@ -72,8 +72,7 @@ class UserController:
         :param email: The user's email
         :return: The user's record without the password field
         """
-        # TODO: Implement the method
-        return {}
+        return requests.get(url=f'{self._api_url}/keyValue/{email}').json()
 
     def login(self, email: str, password: str) -> Union[dict, None]:
         """
@@ -95,8 +94,13 @@ class UserController:
         :return: If the user exists return the user's record without the
         password field, otherwise, return None.
         """
-        # TODO: Implement the method
-        return None
+        user = self.get_user(email)
+        if not user:
+            raise RuntimeError(f'User {email} does not exists.')
+        if password != user['content'].get("password", None):
+            raise RuntimeError(f'Password does not mach.')
+        del user['content']['password']
+        return user
 
     def get_users_ordered(
             self,
