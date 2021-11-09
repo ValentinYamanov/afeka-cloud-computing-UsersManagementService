@@ -25,7 +25,7 @@ def users(email: str) -> Response:
         if request.method == 'PUT':
             return jsonify(user_controller.login(email=email, password=request.json))
         if request.method == 'GET':
-            return jsonify({})
+            return jsonify(user_controller.get_user(email=email))
     except Exception as ex:
         make_response(jsonify('Error: No routing implemented'), 404)
 
