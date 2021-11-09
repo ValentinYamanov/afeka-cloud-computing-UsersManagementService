@@ -72,7 +72,9 @@ class UserController:
         :param email: The user's email
         :return: The user's record without the password field
         """
-        return requests.get(url=f'{self._api_url}/keyValue/{email}').json()
+        user = requests.get(url=f'{self._api_url}/keyValue/{email}').json()
+        del user["content"]["password"]
+        return user
 
     def login(self, email: str, password: str) -> Union[dict, None]:
         """
