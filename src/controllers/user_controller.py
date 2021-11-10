@@ -1,13 +1,18 @@
 from typing import Union
 import requests
 import os
+from datetime import datetime
 
 from src.entities.user import User
+from src.exceptions.user_exception import UserException
 
 
 class UserController:
     def __init__(self):
-        self._api_url = os.getenv('API_URL', 'https://cloud-computing-afeka.herokuapp.com')
+        self._api_url = os.getenv(
+            'API_URL',
+            'https://cloud-computing-afeka.herokuapp.com'
+        )
 
     def store_user(self, data: dict) -> dict:
         """
@@ -20,20 +25,21 @@ class UserController:
         :param data: The user's details
         :return: A user record
         """
-        # TODO: Implement the method
         user_to_store = User(
             data.get("email", ''),
             data.get("name", ''),
             data.get("password", ''),
             data.get("roles", []),
-            data.get('birth_day', '')
+            data.get('birthdate', '')
         )
-        user_from_db = requests.get(url=f'{self._api_url}/keyValue/{data.get("email")}')
-
+        user_from_db = requests.get(
+            url=f'{self._api_url}/keyValue/{data.get("email")}'
+        )
         if not user_from_db:
-            return requests.post(url=f'{self._api_url}/keyValue', json=user_to_store.user_to_json()).json()
+            return requests.post(url=f'{self._api_url}/keyValue',
+                                 json=user_to_store.user_to_json()).json()
         else:
-            raise RuntimeError('User already exists in the system.')
+            raise UserException(UserException.USER_EXISTS)
 
     def delete_all_users(self) -> None:
         """
@@ -57,10 +63,15 @@ class UserController:
         :param email: The user's email
         :param details: The user's details
         """
-        # TODO: Implement the method
-        pass
+        user = self.get_user(email)
+        if user:
+            # Update the user value
+            requests.put(url=f'{self._api_url}/keyValue/{email}', json=details)
+        else:
+            raise UserException(UserException.NO_USER)
 
-    def get_user(self, email: str) -> Union[dict, None]:
+    def get_user(self, email: str, password: bool = False) -> Union[
+        dict, None]:
         """
         An action that returns user information that stored in the system
 
@@ -70,10 +81,16 @@ class UserController:
         except for the password.
 
         :param email: The user's email
+        :param password: Optional param, if set to True, returns the
+        password, otherwise, delete the password and return the user
         :return: The user's record without the password field
         """
-        user = requests.get(url=f'{self._api_url}/keyValue/{email}').json()
-        del user["content"]["password"]
+        try:
+            user = requests.get(url=f'{self._api_url}/keyValue/{email}').json()
+        except Exception:
+            return None
+        if not password:
+            del user["content"]["password"]
         return user
 
     def login(self, email: str, password: str) -> Union[dict, None]:
@@ -96,18 +113,22 @@ class UserController:
         :return: If the user exists return the user's record without the
         password field, otherwise, return None.
         """
-        user = self.get_user(email)
+        user = self.get_user(email, password=True)
         if not user:
-            raise RuntimeError(f'User {email} does not exists.')
+            raise UserException(UserException.NO_USER)
         if password != user['content'].get("password", None):
-            raise RuntimeError(f'Password does not mach.')
+            raise UserException(UserException.LOGIN_FAILED)
         del user['content']['password']
         return user
 
+    def get_all_users(self) -> list[dict]:
+        return requests.get(url=f'{self._api_url}/keyValue').json()[0]
+
     def get_users_ordered(
             self,
-            sort_by: str = '',
-            sort_order: str = ''
+            users: list[dict],
+            sort_by: str,
+            sort_order: str
     ) -> list[dict]:
         """
         An action that returns an array of all users already saved in the
@@ -116,21 +137,47 @@ class UserController:
         Pay attention to comments regarding sorting below the instructions.
         Note that this does not reveal user passwords either
 
-        :param sort_by: TODO: Change it to enum
-        :param sort_order: TODO: Change it to enum
+        :param users:
+        :param sort_by: What to sort by (Name, Date, Email)
+        :param sort_order: The value of the sorting attribute
         :return: List of order records (without pagination)
         """
-        return []
+        if not sort_by or sort_by == 'email':
+            sort_by = 'ID'
+        if not sort_order:
+            sort_order = 'ASC'
+
+        if sort_order == 'ASC':
+            sort_order = False
+        else:
+            sort_order = True
+
+        if sort_by == 'ID':
+            users = sorted(users, key=lambda d: d['ID'], reverse=sort_order)
+        if sort_by == 'birthdate':
+            users = sorted(
+                users,
+                key=lambda d: d['content']['birthdate'],
+                reverse=sort_order
+            )
+        if sort_by == 'name':
+            users = sorted(
+                users,
+                key=lambda d: f"{d['content']['name']['first']} "
+                              f"{d['content']['name']['last']}",
+                reverse=sort_order
+            )
+        return users
 
     def search_users(
             self,
-            data: list[dict],
+            users: list[dict],
             criteria_type: str,
             criteria_value: str
     ) -> list[dict]:
         """
         An action that returns an array of users that a certain attribute
-        passed as a value parameter and allows pagination.
+        passed as a value parameter.
 
         such as:
             1) Their email address belongs to a specific domain (DOMAIN)
@@ -142,4 +189,52 @@ class UserController:
         :param criteria_value: TODO: Change to enum
         :return:  List of filtered records by criteria (without pagination)
         """
-        return data
+
+        if criteria_type == 'byEmailDomain':
+            return list(
+                filter(
+                    lambda e: e['ID'].split('@')[1] == criteria_value,
+                    users
+                )
+            )
+        if criteria_type == 'byBirthYear':
+            return list(
+                filter(
+                    lambda e: e['content']['birthdate'].year == int(
+                        criteria_value
+                    ),
+                    users
+                )
+            )
+        if criteria_type == 'byRole':
+            return list(
+                filter(
+                    lambda e: criteria_value in e['content']['roles'],
+                    users
+                )
+            )
+        return []
+
+    @staticmethod
+    def prepare_user_dates(users: list[dict]) -> None:
+        for user in users:
+            user['content']['birthdate'] = \
+                UserController._convert_string_to_date(
+                    user['content']['birthdate']
+                )
+
+    @staticmethod
+    def convert_user_dates(users: list[dict]) -> None:
+        for user in users:
+            user['content']['birthdate'] = \
+                UserController._convert_date_to_string(
+                    user['content']['birthdate']
+                )
+
+    @staticmethod
+    def _convert_date_to_string(date: datetime) -> str:
+        return date.strftime("%d-%m-%Y")
+
+    @staticmethod
+    def _convert_string_to_date(date: str) -> datetime:
+        return datetime.strptime(date, '%d-%m-%Y')
