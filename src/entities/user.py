@@ -1,8 +1,7 @@
 from datetime import datetime
 
-# re module provides support
-# for regular expressions
 import re
+from src.exceptions.user_exception import UserException
 
 
 class User:
@@ -37,10 +36,11 @@ class User:
     @name.setter
     def name(self, name: dict):
         if all(att in name.keys() for att in ['first', 'last']):
+            if not name['first'] or not name['last']:
+                raise UserException(UserException.EMPTY_NAME)
             self._name = name
         else:
-            # TODO: Raise an exception
-            pass
+            raise UserException(UserException.NAME_INVALID)
 
     @property
     def email(self) -> str:
@@ -48,11 +48,10 @@ class User:
 
     @email.setter
     def email(self, email: str):
-        # TODO: Check if the email is exists, and valid
         if self.validate_email(email):
             self._email = email
         else:
-            raise RuntimeError('Invalid email was provided')
+            raise UserException(UserException.EMAIL_INVALID)
 
     @property
     def password(self) -> str:
@@ -60,8 +59,8 @@ class User:
 
     @password.setter
     def password(self, password: str):
-        # TODO: This string must contain at least five characters,
-        #  at least one of which is a digit, such as ab4de
+        if len(password) < 5 or not self._check_digit(password):
+            raise UserException(UserException.PASSWORD_ILLEGAL)
         self._password = password
 
     @property
@@ -70,7 +69,6 @@ class User:
 
     @birth_day.setter
     def birth_day(self, dob: datetime):
-        # TODO: Change the format of datetime to "dd-MM-yyyy"
         self._dob = dob
 
     @property
@@ -79,8 +77,9 @@ class User:
 
     @roles.setter
     def roles(self, roles: list):
-        # TODO: Make sure that these strings are not empty.
-        #  Any value that is not an empty string will be considered valid
+        for role in roles:
+            if not role:
+                raise UserException(UserException.ROLE_INVALID)
         self._roles = roles
 
     @staticmethod
@@ -94,13 +93,18 @@ class User:
         else:
             return False
 
+    @staticmethod
+    def _check_digit(password: str) -> bool:
+        for char in password:
+            if char.isdigit():
+                return True
+        return False
+
     def user_to_json(self) -> dict:
         return {
             "email": self.email,
             "name": self.name,
             "password": self.password,
             "roles": self.roles,
-            "dob": self.birth_day
+            "birthdate": self.birth_day
         }
-
-
