@@ -1,0 +1,218 @@
+{
+	"info": {
+		"_postman_id": "a8003ad2-b4a9-4fe9-8523-7c9809760bdd",
+		"name": "User Managment Local",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "/users",
+			"item": [
+				{
+					"name": "POST a User",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"email\":\"user@afeka.ac.il\",\r\n    \"name\":{\r\n        \"first\":\"Cynthia\", \r\n        \"last\":\"Chambers\"\r\n    },\r\n    \"password\":\"ab4de\",\r\n    \"birthdate\":\"11-05-1992\",\r\n    \"roles\":[\"devs\",\"inspector\"]\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:5000/users",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5000",
+							"path": [
+								"users"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "DELETE all users",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:5000/users",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5000",
+							"path": [
+								"users"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "/users/<email>",
+			"item": [
+				{
+					"name": "PUT update user",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"name\":{\r\n        \"first\":\"Meshi\", \r\n        \"last\":\"Sanker\"\r\n    },\r\n    \"password\":\"abdre7t\",\r\n    \"birthdate\":\"20-10-1994\",\r\n    \"roles\":[\"devs\"]\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:5000/users/meshi@afeka.ac.il",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5000",
+							"path": [
+								"users",
+								"meshi@afeka.ac.il"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "GET a user",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:5000/users/user@afeka.ac.il",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5000",
+							"path": [
+								"users",
+								"user@afeka.ac.il"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "/user/login/<email>",
+			"item": [
+				{
+					"name": "GET login",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:5000/users/login/user@afeka.ac.il?password=ab4de",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5000",
+							"path": [
+								"users",
+								"login",
+								"user@afeka.ac.il"
+							],
+							"query": [
+								{
+									"key": "password",
+									"value": "ab4de"
+								},
+								{
+									"key": "password",
+									"value": "asdasd",
+									"disabled": true
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "/users/search",
+			"item": [
+				{
+					"name": "GET users",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:5000/users/search?sortBy=name&sortOrder=DESC",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5000",
+							"path": [
+								"users",
+								"search"
+							],
+							"query": [
+								{
+									"key": "sortBy",
+									"value": "birthdate",
+									"disabled": true
+								},
+								{
+									"key": "sortBy",
+									"value": "name"
+								},
+								{
+									"key": "sortOrder",
+									"value": "DESC"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "GET users with criteria",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:5000/users/search?sortBy=birthdate",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5000",
+							"path": [
+								"users",
+								"search"
+							],
+							"query": [
+								{
+									"key": "sortBy",
+									"value": "birthdate"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	]
+}
