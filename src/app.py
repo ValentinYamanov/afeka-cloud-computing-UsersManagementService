@@ -1,6 +1,10 @@
 from flask import Flask, Response, request, make_response, jsonify
-from controllers.user_controller import UserController
-from exceptions.user_exception import UserException
+try:
+    from controllers.user_controller import UserController
+    from exceptions.user_exception import UserException
+except ModuleNotFoundError:
+    from src.controllers.user_controller import UserController
+    from src.exceptions.user_exception import UserException
 
 app = Flask(__name__)
 user_controller = UserController()
